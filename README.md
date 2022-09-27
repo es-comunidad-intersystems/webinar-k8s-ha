@@ -11,7 +11,7 @@
 
 * [Configure](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html#cli-configure-quickstart-config) your AWS CLI to use your EKS enabled user.
 
-## Create EKS cluster
+## Create EKS cluster
 Go to k8s folder:
 ```
 cd k8s
