@@ -70,7 +70,7 @@ Define storage class:
 kubectl apply -f storage.yaml
 ```
 
-## Deploy
+## Deploy
 * Have a look at the [iris.yaml](k8s/iris.yaml) configuration.
 
 * Deploy the InterSystems IRIS configuration:
