@@ -1,0 +1,14 @@
+# license file
+iris.key
+
+# python client (native api) config file
+ingest.ini
+
+# downloaded IKO binaries
+k8s/iris_operator*
+
+# python nativeAPI binaries
+client/nativeAPI*
+
+# local notes
+local.md

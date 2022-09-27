@@ -1,0 +1,8 @@
+{
+    "objectscript.conn": {
+        "active": true,
+        "username": "superuser",
+        "ns": "IRISCLUSTER",
+        "server": "webinar-k8s-ha"
+    },
+}

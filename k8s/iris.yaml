@@ -1,0 +1,188 @@
+## uncommented fields deploy one InterSystems IRIS data server
+
+## WARNING: default password is not reset, to do so include
+## configSource below
+
+## include commented fields for purposes described; see documentation at
+## https://docs.intersystems.com/irislatest/csp/docbook/Doc.View.cls?KEY=AIKO_clusterdef_sample
+
+## update image tags (from ":tag") before using; see list of available images at
+## https://docs.intersystems.com/components/csp/docbook/Doc.View.cls?KEY=PAGE_containerregistry
+
+   apiVersion: intersystems.com/v1alpha1
+   kind: IrisCluster
+   metadata:
+     name: webinar
+   spec:
+
+## provide InterSystems IRIS license key if required
+     licenseKeySecret:
+       name: iris-key-secret
+
+## specify files used to customize the configurations of
+## InterSystems IRIS nodes, including passwordHash parameter
+## to set the default password, securing InterSystems IRIS
+     configSource:
+       name: iris-cpf
+
+## provide repository credentials if required to pull images
+     imagePullSecrets:
+       - name: intersystems-pull-secret
+
+## specify platform-specific storage class used to allocate storage
+## volumes (default: use platform-defined class)
+     storageClassName: iris-ssd-storageclass
+
+## select update strategy (default: RollingUpdate)
+     updateStrategy:
+       type: RollingUpdate
+
+## create external IP address(es)for the cluster
+## ("type: LoadBalancer" and "externalTrafficPolicy: Local" are required)
+     serviceTemplate:
+       spec:
+         type: LoadBalancer
+         externalTrafficPolicy: Local
+
+## define persistent volumes (to be mounted by "volumeMounts:" in node definitions)
+#  volumeClaimTemplates:
+#    - metadata:
+#        name: extra-disk
+#      spec:
+#        accessModes:
+#          - ReadWriteOnce
+#        resources:
+#          requests:
+#            storage: 2Gi
+
+## define ephemeral volumes (to be mounted by "volumeMounts:" in node definitions)
+#  volumes:
+#    - name: my-secret
+#      secret:
+#        secretName: my-secret
+#    - name: my-secret2
+#      secret:
+#        secretName: my-secret2
+#    - name: my-config
+#      configMap:
+#        name: my-config
+
+## topology: defines node types to be deployed; only "data:" is required
+
+     topology:
+       data:
+         image: containers.intersystems.com/intersystems/iris:2022.1.0.209.0
+         podTemplate:
+          spec:
+            args:
+              - --check-caps
+              - "false"
+
+## deploy a sharded cluster of data nodes and (optionally) compute
+## nodes; if not included, "data:" definition in "topology:" deploys
+## a single data server, "compute:" adds application servers
+#         shards: 2
+
+## deploy mirrored data nodes or data server (default: nonmirrored)
+         mirrored: true
+
+## override default size and other attributes of predefined storage 
+## volumes for data nodes (additional volume names: storageWIJ, 
+## storageJournal1, storageJournal2); can also be included in
+## "compute:" definition
+         storageDB:
+           resources:
+             requests:
+               storage: 10Gi
+           storageClassName: iris-ssd-storageclass
+
+## constrain nodes to platform-specific availability zones (can be
+## included in other node definitions)
+#         preferredZones:
+#           - us-east1-a
+#           - us-east1-b
+
+## mount volumes defined in "volumeClaimTemplates:" (persistent) and "volumes:" (ephemeral)
+#         volumeMounts:
+#           - mountPath: "/extra-disk"
+#             name: extra-disk
+#           - mountPath: "/my-secret"
+#             name: my-secret
+#           - mountPath: "/my-config"
+#             name: my-config
+
+## deploy compute nodes, or application servers if "shards:" not included;
+## use "replicas:" to specify how many
+       compute:
+         image: containers.intersystems.com/intersystems/iris:2022.1.0.209.0
+         podTemplate:
+          spec:
+            args:
+              - --check-caps
+              - "false"
+         replicas: 2
+
+## mount ephemeral volume defined in "volumes:"
+#         volumeMounts:
+#           - mountPath: "/my-secret2"
+#             name: my-secret2
+
+## deploy arbiter for mirrored data nodes (or data server)
+       arbiter:
+         image: containers.intersystems.com/intersystems/arbiter:2022.1.0.209.0
+
+## deploy webgateway (web server) nodes
+       webgateway:
+         image: containers.intersystems.com/intersystems/webgateway:2022.1.0.209.0
+         type: apache
+         replicas: 2
+         applicationPaths:
+           - /external
+           - /internal
+         alternativeServers: LoadBalancing
+
+## deploy System Alerting and Monitoring (SAM) with InterSystems IRIS
+#      sam:
+#        image: containers.intersystems.com/intersystems/sam:tag
+
+## deploy InterSystems API Manager (IAM) with InterSystems IRIS
+#      iam:
+#        image: containers.intersystems.com/intersystems/iam:tag
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: ecp-service
+spec:
+  externalTrafficPolicy: Local
+  type: LoadBalancer
+  ports:
+  - name: superserver
+    port: 1972
+    targetPort: superserver
+    protocol: TCP
+  - name: webserver
+    port: 52773
+    targetPort: webserver
+    protocol: TCP
+  selector:
+    intersystems.com/component: compute
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: webgateway-service
+spec:
+  externalTrafficPolicy: Local
+  type: LoadBalancer
+  ports:
+  - name: webserver
+    port: 80
+    targetPort: webserver
+    protocol: TCP
+  selector:
+    intersystems.com/component: webgateway
