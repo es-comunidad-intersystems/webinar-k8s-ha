@@ -1,4 +1,5 @@
 
+<img src="img/arch.png" width="400px" />
 
 # Setup
 
