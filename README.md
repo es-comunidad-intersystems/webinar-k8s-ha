@@ -78,19 +78,62 @@ kubectl apply -f storage.yaml
 kubectl apply -f iris.yaml
 ```
 
-* Now, display running pods, services, etc:
-
+* Show running pods
 ```
 kubectl get pods
+NAME                                          READY   STATUS    RESTARTS   AGE
+intersystems-iris-operator-84568955dc-mm6gg   1/1     Running   0          17m
+webinar-arbiter-0                             1/1     Running   0          13m
+webinar-compute-0                             1/1     Running   0          5m53s
+webinar-compute-1                             1/1     Running   0          3m12s
+webinar-data-0-0                              1/1     Running   0          12m
+webinar-data-0-1                              1/1     Running   0          10m
+webinar-webgateway-0                          1/1     Running   0          101s
+webinar-webgateway-1                          0/1     Running   0          50s
+```
 
-kubectl get IrisClusters
-
+* Show services, pay attention to the services that references LoadBalancers to webgateways, compute and data pods.
+```
 kubectl get svc
+NAME                         TYPE           CLUSTER-IP       EXTERNAL-IP                                                               PORT(S)                          AGE
+ecp-service                  LoadBalancer   10.100.221.197   aaa5ff964a875403f8d412fb7452adb6-471642292.eu-west-1.elb.amazonaws.com    1972:32665/TCP,52773:32276/TCP   13m
+intersystems-iris-operator   ClusterIP      10.100.13.53     <none>                                                                    443/TCP                          17m
+iris-svc                     ClusterIP      None             <none>                                                                    <none>                           13m
+kubernetes                   ClusterIP      10.100.0.1       <none>                                                                    443/TCP                          41m
+webgateway-service           LoadBalancer   10.100.158.12    aaab9045e05d8410aa8cb9a66ed348b0-1326787197.eu-west-1.elb.amazonaws.com   80:31840/TCP                     13m
+webinar                      LoadBalancer   10.100.153.110   aaad50e7786e440d19c59f9fb82e0ae2-1725045822.eu-west-1.elb.amazonaws.com   1972:30645/TCP,52773:32655/TCP   13m
+webinar-webgateway           LoadBalancer   10.100.191.167   aaa936e8c427d42c996aa24cf9c7f136-1002690704.eu-west-1.elb.amazonaws.com   80:31857/TCP                     6s
+```
+
+* After initialization is completed, you should be able to access to:
+  * Data pods - http://webinar-lb:52773/csp/sys/UtilHome.csp
+  * Compute pods - http://compute-service-lb:52773/csp/sys/UtilHome.csp
+  * Webgateway pods - http://webgateway-service-lb/
+
+
+* You can even connect to a specific pod in a interactive shell:
+```
+kubectl exec --stdin --tty webinar-data-0-0 -- /bin/bash
 ```
 
 # Run some tests
 
+Keep in mind that in a real environment you could just pull your own Docker image with your application.
+
+In this case, for the sake of simplicity, we will load some code and create web applications.
+
+## Load code in the IRIS instance
+* We will load & compile some test code in IRIS
+* Using Visual Code, set up a connection to your data pod and load and compile the code in `/src`.
+
+## Create web applications
+* Connect to `webinar-data-0-0`, `webinar-data-0-1`, `webinar-compute-0` and `webinar-compute-1` and create a simple test web application using:
+```
+write ##class(API.Util).CreateWebApp("IRISCLUSTER", "/external/person", "API.RestHandler")
+```
+
 ## Python client (NativeAPI)
+Try running a simple Python (NativeAPI) example that will connect to your compute-lb.
 
 Install nativeAPI (Python)
 ```
@@ -100,7 +143,7 @@ pip3 install nativeAPI_wheel/irisnative-1.0.0-cp34-abi3-linux_x86_64.whl
 Create an `client\ingest.ini` file and set up python client configuration like:
 ```
 [iris]
-ip = <ip>
+ip = <compute-service-lb>
 port = 1972
 namespace = IRISCLUSTER
 username = superuser
@@ -119,6 +162,19 @@ id = 143
 ...
 ```
 
+Now, while inserting data try to delete you Primary Data pod:
+```
+kubectl delete pod webinar-data-0-0
+```
+
+Have a look at the Mirror Monitor in the Data Management Portal and check what happened.
+
+Check how Kubernetes has already started again the pod for you.
+
+## REST API
+* Have a look at the simple REST API in [src/API/RestHandler.cls](src/API/RestHandler.cls).
+* Open Postman, load [client/webinar-k8s-ha.postman_collection.json](client/webinar-k8s-ha.postman_collection.json) and check the request.
+* The request will use webgateway-lb as target.
 
 # Delete Kubernetes deployment
 

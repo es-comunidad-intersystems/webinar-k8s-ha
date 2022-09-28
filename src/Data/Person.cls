@@ -1,6 +1,6 @@
 /// 
 /// Simple persistent class used to insert data
-Class Data.Person Extends %Persistent
+Class Data.Person Extends (%Persistent, %JSON.Adaptor)
 {
 
 Property Name As %String;
