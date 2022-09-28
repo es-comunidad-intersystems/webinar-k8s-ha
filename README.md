@@ -127,7 +127,7 @@ In this case, for the sake of simplicity, we will load some code and create web 
 * We will load & compile some test code in IRIS
 * Using Visual Code, set up a connection to your data pod and load and compile the code in `/src`.
 
-## Create web applications
+## Create web applications
 * Connect to `webinar-data-0-0`, `webinar-data-0-1`, `webinar-compute-0` and `webinar-compute-1` and create a simple test web application using:
 ```
 write ##class(API.Util).CreateWebApp("IRISCLUSTER", "/external/person", "API.RestHandler")
@@ -172,7 +172,7 @@ Have a look at the Mirror Monitor in the Data Management Portal and check what h
 
 Check how Kubernetes has already started again the pod for you.
 
-## REST API
+## REST API
 * Have a look at the simple REST API in [src/API/RestHandler.cls](src/API/RestHandler.cls).
 * Open Postman, load [client/webinar-k8s-ha.postman_collection.json](client/webinar-k8s-ha.postman_collection.json) and check the request.
 * The request will use webgateway-lb as target.
