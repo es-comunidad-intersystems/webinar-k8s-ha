@@ -1,5 +1,5 @@
 
-<img src="img/arch.png" width="400px" />
+<img src="img/workflow.png" width="500px" />
 
 # Setup
 
@@ -72,6 +72,9 @@ kubectl apply -f storage.yaml
 ```
 
 ## Deploy
+
+<img src="img/arch.png" width="500px" />
+
 * Have a look at the [iris.yaml](k8s/iris.yaml) configuration.
 
 * Deploy the InterSystems IRIS configuration:
