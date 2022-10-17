@@ -20,7 +20,7 @@ cd k8s
 
 Create an EKS cluster with some nodes:
 ```
-eksctl create cluster --name afuentes-webinar-k8s-ha --nodes 3 --version 1.21 --node-type t2.medium  --region eu-west-1 --ssh-access
+eksctl create cluster --name afuentes-webinar-k8s-ha --nodes 3 --version 1.21 --node-type t2.medium --region eu-west-1
 ```
 
 ## Install IKO (InterSystems Kubernetes Operator)
