@@ -19,6 +19,7 @@ ClassMethod PersonGet(id As %String) As %Status
     	set %response.Status = "404"
     	quit ""
     }
+    set %response.ContentType = "application/json"
     set %response.Status = "200"
     do obj.%JSONExport()
     
