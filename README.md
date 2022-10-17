@@ -153,6 +153,9 @@ password = <password>
 
 Run the client:
 ```
+cd client
+python ingest.py
+
 Connected
 Inserting data...
 id = 139
