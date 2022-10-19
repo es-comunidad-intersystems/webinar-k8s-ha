@@ -17,11 +17,11 @@ ClassMethod PersonGet(id As %String) As %Status
     set obj = ##class(Data.Person).%OpenId(id)
     if '$isobject(obj) {
     	set %response.Status = "404"
-    	quit ""
+    } else {
+        set %response.ContentType = "application/json"
+        set %response.Status = "200"
+        do obj.%JSONExport()
     }
-    set %response.ContentType = "application/json"
-    set %response.Status = "200"
-    do obj.%JSONExport()
     
     quit $$$OK
 }
